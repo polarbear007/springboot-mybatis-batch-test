@@ -3,7 +3,9 @@ package cn.itcast.service;
 import java.sql.Connection;
 import java.util.Date;
 
+import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,8 +22,13 @@ public class EmployeeService {
 	@Autowired
 	private EmployeeMapper employeeMapper;
 	// 引入 batchSqlSession ，如果需要批量操作的时候，就用这个
+	// 就算你把  batchSqlSession 设置成 prototype ，还是会有线程安全问题
+	// 因为 service 是单实例，只初始化一次， batchSqlSession 只会被注入一次
+//	@Autowired
+//	private SqlSession batchSqlSession;
+	
 	@Autowired
-	private SqlSession batchSqlSession;
+	private SqlSessionFactory sqlSessionFactory;
 	
 	// 测试批量操作与普通操作，进行事务嵌套
 	// 也就是说用到了两个 sqlSession ，但是spring 的事务管理器可以保证
@@ -35,6 +42,10 @@ public class EmployeeService {
 		emp.setBirthDate(new Date());
 		emp.setEmail("rose@qq.com");
 		emp.setGender('女');
+		
+		// 必须通过 sqlSessionFactory 在方法里面手动获取 batchSqlSession
+		SqlSession batchSqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH);
+		
 		// 打印一下connection 的地址
 		Connection connection = batchSqlSession.getConnection();
 		System.out.println(connection);

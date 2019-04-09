@@ -1,13 +1,11 @@
 package cn.itcast;
 
 import org.apache.ibatis.session.ExecutorType;
-import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 
 @Configuration
 public class SpringConfig {
@@ -28,9 +26,12 @@ public class SpringConfig {
 	// 而且 SqlSessionTemplate 内部还包含着一个 SqlSession 对象，不知道什么模式，代理或者委托者模式
 	
 	// 【注意】 sqlSession 是线程不安全的，所以我们这里可不能配置成单例的，必须配置成 prototype
-	@Bean
-	@Scope("prototype")
-	public SqlSession batchSqlSession(@Autowired SqlSessionFactory sqlSessionFactory) {
-		return sqlSessionFactory.openSession(ExecutorType.BATCH);
-	}
+	// ===> 其实这种方法也不对，因为注入到单实例 service 对象中，只会注入一次，所以就算你这里改成  prototype 
+	//      还是无法保证线程安全。 最合理的方法就是在service 注入一个 sqlSessionFactory ,需要批量操作的时候
+	//      就使用 sqlSessionFactory 拿到一个特定的 sqlSession 对象。
+//	@Bean
+//	@Scope("prototype")
+//	public SqlSession batchSqlSession(@Autowired SqlSessionFactory sqlSessionFactory) {
+//		return sqlSessionFactory.openSession(ExecutorType.BATCH);
+//	}
 }
